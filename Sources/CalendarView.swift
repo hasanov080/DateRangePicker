@@ -12,22 +12,22 @@ protocol CalendarViewDelegate: NSObject{
     func didSelectDates(date: [Date])
 }
 class CalendarView: UIView {
-    private var multiSelection = false
+    var swiftUIView = CalendarSwiftUI(singleSelection: true, availableRange: [])
+    var multiSelection = false{
+        didSet{
+            setupCalendar(singleSelection: !multiSelection)
+        }
+    }
     weak var delegate: CalendarViewDelegate?
     var range: [(start: Date, end: Date)] = []{
         didSet{
-            setupCalendar(singleSelection: multiSelection)
+            setupCalendar(singleSelection: !multiSelection)
         }
     }
     private var cancelables = Set<AnyCancellable>()
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupCalendar()
-    }
-    convenience init(multiSelection: Bool) {
-        self.init()
-        setupCalendar(singleSelection: !multiSelection)
-        self.multiSelection = multiSelection
     }
     required init?(coder: NSCoder) {
         super.init(coder: coder)
@@ -37,9 +37,11 @@ class CalendarView: UIView {
         subviews.forEach { view in
             view.removeFromSuperview()
         }
-        let swiftUIView = CalendarSwiftUI(singleSelection: singleSelection, availableRange: range)
+        swiftUIView = CalendarSwiftUI(singleSelection: singleSelection, availableRange: range)
         let vc = UIHostingController(rootView: swiftUIView)
         vc.view.translatesAutoresizingMaskIntoConstraints = false
+        setContentHuggingPriority(.defaultHigh, for: .vertical)
+        setContentCompressionResistancePriority(.defaultLow, for: .vertical)
         addSubview(vc.view)
         NSLayoutConstraint.activate([
             vc.view.leadingAnchor.constraint(equalTo: leadingAnchor),
@@ -47,11 +49,17 @@ class CalendarView: UIView {
             vc.view.bottomAnchor.constraint(equalTo: bottomAnchor),
             vc.view.topAnchor.constraint(equalTo: topAnchor),
         ])
+        vc.view.autoresizingMask = [.flexibleHeight]
         swiftUIView.model.$selectedDay
             .sink { dates in
                 self.delegate?.didSelectDates(date: dates)
             }
             .store(in: &cancelables)
+        swiftUIView.model.$changeLayout
+            .sink { value in
+                self.invalidateIntrinsicContentSize()
+                self.frame.size = vc.view.systemLayoutSizeFitting(vc.view.frame.size, withHorizontalFittingPriority: .defaultHigh, verticalFittingPriority: .dragThatCannotResizeScene)
+            }
+            .store(in: &cancelables)
     }
-
 }

@@ -7,13 +7,13 @@
 
 import SwiftUI
 enum WeekDays: String, CaseIterable{
+    case saturday = "Sat"
     case sunday = "Sun"
     case monday = "Mon"
     case tuesday = "Tue"
     case wensday = "Wen"
     case thursday = "Thu"
     case friday = "Fri"
-    case saturday = "Sat"
 }
 enum AvailabilityEnum{
     case day
@@ -46,52 +46,51 @@ struct CalendarSwiftUI: View {
         })
     }
     var header: some View{
-        VStack(spacing: 15){
+        HStack{
             HStack{
-                HStack{
-                    Text("\(getMonthYearString())")
-                        .font(.system(size: 15, weight: .bold, design: .rounded))
+                Text("\(getMonthYearString())")
+                    .font(.system(size: 15, weight: .bold, design: .rounded))
+                Image(systemName: "chevron.right")
+                    .foregroundColor(.blue)
+                    .rotationEffect(model.showPicker ? .degrees(90) : .degrees(0))
+            }
+            .onTapGesture {
+                withAnimation(.easeIn(duration: 0.2)) {
+                    model.showPicker.toggle()
+                }
+            }
+            .frame(height: 25)
+            Spacer()
+            if !model.showPicker{
+                Button{
+                    if let newDate = currentCalendar.date(byAdding: .month, value: -1, to: model.currentDate){
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            model.currentDate = newDate
+                        }
+                        model.changeLayout += 1
+                    }
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .foregroundColor(.blue)
+                        .font(.system(size: 17, weight: .bold))
+                }
+                Button{
+                    if let newDate = currentCalendar.date(byAdding: .month, value: 1, to: model.currentDate){
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            model.currentDate = newDate
+                        }
+                        model.changeLayout += 1
+                    }
+                } label: {
                     Image(systemName: "chevron.right")
                         .foregroundColor(.blue)
-                        .rotationEffect(model.showPicker ? .degrees(90) : .degrees(0))
+                        .font(.system(size: 17, weight: .bold))
                 }
-                .onTapGesture {
-                    withAnimation(.easeIn(duration: 0.2)) {
-                        model.showPicker.toggle()
-                    }
-                }
-                
-                Spacer()
-                if !model.showPicker{
-                    Button{
-                        if let newDate = currentCalendar.date(byAdding: .month, value: -1, to: model.currentDate){
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                model.currentDate = newDate
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "chevron.left")
-                            .foregroundColor(.blue)
-                            .font(.system(size: 17, weight: .bold))
-                    }
-                    Button{
-                        if let newDate = currentCalendar.date(byAdding: .month, value: 1, to: model.currentDate){
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                model.currentDate = newDate
-                            }
-                        }
-                    } label: {
-                        Image(systemName: "chevron.right")
-                            .foregroundColor(.blue)
-                            .font(.system(size: 17, weight: .bold))
-                    }
-                }
-                
             }
         }
     }
     var datesBody: some View{
-        HStack{
+        HStack(alignment: .top){
             ForEach(weeks, id: \.self) { day in
                 VStack(spacing: 15){
                     Text(day.rawValue)
@@ -140,8 +139,6 @@ struct CalendarSwiftUI: View {
                                 .cornerRadius(20)
                         }
                     }
-                    Spacer()
-                    
                 }
                 if weeks.firstIndex(of: day) != 6{
                     Spacer()
@@ -159,7 +156,6 @@ struct CalendarSwiftUI: View {
                     pickerView
                 }
             }
-            Spacer()
         }
         .padding()
     }
@@ -173,7 +169,7 @@ struct CalendarSwiftUI: View {
         case .monday:
             let year = currentCalendar.component(.year, from: date)
             let month = currentCalendar.component(.month, from: date)
-            dates = numberOfWeeks.map{ week -> Int? in
+            dates = numberOfWeeks.compactMap{ week -> Int? in
                 let component = DateComponents(year: year, month: month, weekday: 2, weekOfMonth: week)
                 guard let date = currentCalendar.date(from: component) else {return nil}
                 let day = currentCalendar.component(.day, from: date)
@@ -188,7 +184,7 @@ struct CalendarSwiftUI: View {
         case .tuesday:
             let year = currentCalendar.component(.year, from: date)
             let month = currentCalendar.component(.month, from: date)
-            dates = numberOfWeeks.map{ week -> Int? in
+            dates = numberOfWeeks.compactMap{ week -> Int? in
                 let component = DateComponents(year: year, month: month, weekday: 3, weekOfMonth: week)
                 guard let date = currentCalendar.date(from: component) else {return nil}
                 let day = currentCalendar.component(.day, from: date)
@@ -203,7 +199,7 @@ struct CalendarSwiftUI: View {
         case .wensday:
             let year = currentCalendar.component(.year, from: date)
             let month = currentCalendar.component(.month, from: date)
-            dates = numberOfWeeks.map{ week -> Int? in
+            dates = numberOfWeeks.compactMap{ week -> Int? in
                 let component = DateComponents(year: year, month: month, weekday: 4, weekOfMonth: week)
                 guard let date = currentCalendar.date(from: component) else {return nil}
                 let day = currentCalendar.component(.day, from: date)
@@ -218,7 +214,7 @@ struct CalendarSwiftUI: View {
         case .thursday:
             let year = currentCalendar.component(.year, from: date)
             let month = currentCalendar.component(.month, from: date)
-            dates = numberOfWeeks.map{ week -> Int? in
+            dates = numberOfWeeks.compactMap{ week -> Int? in
                 let component = DateComponents(year: year, month: month, weekday: 5, weekOfMonth: week)
                 guard let date = currentCalendar.date(from: component) else {return nil}
                 let day = currentCalendar.component(.day, from: date)
@@ -233,7 +229,7 @@ struct CalendarSwiftUI: View {
         case .friday:
             let year = currentCalendar.component(.year, from: date)
             let month = currentCalendar.component(.month, from: date)
-            dates = numberOfWeeks.map{ week -> Int? in
+            dates = numberOfWeeks.compactMap{ week -> Int? in
                 let component = DateComponents(year: year, month: month, weekday: 6, weekOfMonth: week)
                 guard let date = currentCalendar.date(from: component) else {return nil}
                 let day = currentCalendar.component(.day, from: date)
@@ -248,7 +244,7 @@ struct CalendarSwiftUI: View {
         case .saturday:
             let year = currentCalendar.component(.year, from: date)
             let month = currentCalendar.component(.month, from: date)
-            dates = numberOfWeeks.map{ week -> Int? in
+            dates = numberOfWeeks.compactMap{ week -> Int? in
                 let component = DateComponents(year: year, month: month, weekday: 0, weekOfMonth: week)
                 guard let date = currentCalendar.date(from: component) else {return nil}
                 let day = currentCalendar.component(.day, from: date)
@@ -263,7 +259,7 @@ struct CalendarSwiftUI: View {
         case .sunday:
             let year = currentCalendar.component(.year, from: date)
             let month = currentCalendar.component(.month, from: date)
-            dates = numberOfWeeks.map{ week -> Int? in
+            dates = numberOfWeeks.compactMap{ week -> Int? in
                 let component = DateComponents(year: year, month: month, weekday: 1, weekOfMonth: week)
                 guard let date = currentCalendar.date(from: component) else {return nil}
                 let day = currentCalendar.component(.day, from: date)
@@ -275,6 +271,12 @@ struct CalendarSwiftUI: View {
                 }
             }
             break
+        }
+        let dateOrder = weeks.firstIndex(of: week)!
+        if let firstDate = dates.first!{
+            if firstDate > dateOrder + 1{
+                dates.insert(nil, at: 0)
+            }
         }
         return dates
     }
@@ -362,6 +364,7 @@ extension CalendarSwiftUI{
         @Published var backgroundColor = Color.clear
         @Published var selectedDay: [Date] = []
         @Published var showPicker = false
+        @Published var changeLayout = 0
     }
 }
 
